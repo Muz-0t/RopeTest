@@ -12,14 +12,17 @@ public class RopeAction : MonoBehaviour
     [SerializeField] private Transform _player;
     //메인 카메라
     [SerializeField] private Camera playerCamera;
+    [SerializeField] private float _hookSpeed;
     private RaycastHit _raycastHit;
     private LineRenderer _lineRenderer;
     private bool _isGrappling;
     private SpringJoint _springJoint;
+    private Rigidbody _rigidbody;
     
     private void Start()
     {
         _lineRenderer = GetComponent<LineRenderer>();
+        _rigidbody = GetComponentInParent<Rigidbody>();
         _lineRenderer.positionCount = 0;
     }
 
@@ -35,6 +38,11 @@ public class RopeAction : MonoBehaviour
         }
         
         OnDrawFollowingRope();
+        
+        if (Input.GetMouseButtonDown(1))
+        {
+            BoostToEndOfRope();
+        }
         
         //커서 띄우고 없애기
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -55,7 +63,7 @@ public class RopeAction : MonoBehaviour
     //RayCast 이 후 LineRenderer를 이용해 줄을 연결하는 메서드
     private void CheckRaycastAndShootRope()
     {
-        if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out _raycastHit, 15f, mapObj))
+        if (Physics.Raycast(transform.position, playerCamera.transform.forward, out _raycastHit, 15f, mapObj))
         {
             _isGrappling = true;
             Debug.Log("Raycast Hit");
@@ -103,6 +111,13 @@ public class RopeAction : MonoBehaviour
         {
             _lineRenderer.SetPosition(0, transform.position);
         }
+    }
+    
+    //우클릭 시 개구리가 혀의 연결점 끝으로 힘을 받아서 날아감
+    private void BoostToEndOfRope()
+    {
+        var pos = _raycastHit.point;
+        _rigidbody.AddForce(_raycastHit.point * _hookSpeed, ForceMode.Impulse);
     }
 
     #endregion
